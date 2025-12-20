@@ -17,6 +17,7 @@ public:
     virtual ~PyCallable() {}
 
 public:
+    virtual void* GetMethod()   { return nullptr; }
     virtual PyObject* GetSignature(bool show_formalargs = true) = 0;
     virtual PyObject* GetPrototype(bool show_formalargs = true) = 0;
     virtual PyObject* GetTypeName() { return GetPrototype(false); }

@@ -50,6 +50,7 @@ public:
     virtual ~CPPMethod();
 
 public:
+    Cppyy::TCppMethod_t GetMethod() override{ return fMethod; }
     PyObject* GetSignature(bool show_formalargs = true) override;
     PyObject* GetPrototype(bool show_formalargs = true) override;
     PyObject* GetTypeName() override;
@@ -71,6 +72,11 @@ public:
 
     int       GetArgMatchScore(PyObject* args_tuple) override;
 
+    // extra info methods
+    bool IsOperator() { return Cppyy::IsOperator(fMethod); }
+    bool IsConversionOperator() { return Cppyy::IsConversionOperator(fMethod); }
+    bool IsStaticMethod() { return Cppyy::IsStaticMethod(fMethod); }
+
 public:
     PyObject* Call(CPPInstance*& self,
         CPyCppyy_PyArgs_t args, size_t nargsf, PyObject* kwds, CallContext* ctxt = nullptr) override;
@@ -83,7 +89,6 @@ protected:
     bool ConvertAndSetArgs(CPyCppyy_PyArgs_t, size_t nargsf, CallContext* ctxt = nullptr);
     PyObject* Execute(void* self, ptrdiff_t offset, CallContext* ctxt = nullptr);
 
-    Cppyy::TCppMethod_t GetMethod()   { return fMethod; }
     Cppyy::TCppScope_t  GetScope()    { return fScope; }
     Executor*           GetExecutor() { return fExecutor; }
     std::string         GetSignatureString(bool show_formalargs = true);
