@@ -7,6 +7,7 @@
 #include "CPPInstance.h"
 #include "CPPOverload.h"
 #include "CPPScope.h"
+#include "CPPMethod.h"
 #include "CustomPyTypes.h"
 #include "LowLevelViews.h"
 #include "MemoryRegulator.h"
@@ -540,6 +541,52 @@ static void* GetCPPInstanceAddress(const char* fname, PyObject* args, PyObject* 
 }
 
 //----------------------------------------------------------------------------
+static PyObject* llvmir_of(PyObject* /* dummy */, PyObject* args, PyObject* kwds)
+{
+    if (!PyTuple_CheckExact(args) || PyTuple_GET_SIZE(args) != 1) {
+        PyErr_SetString(PyExc_TypeError, "expected an overload instance");
+        return nullptr;
+    }
+
+    PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
+    if (CPPOverload_CheckExact(arg0)) {
+        const auto& methods = ((CPPOverload*)arg0)->fMethodInfo->fMethods;
+        if (methods.size() != 1) {
+            PyErr_SetString(PyExc_TypeError, "overload is not unambiguous");
+            return nullptr;
+        }
+        if (auto *m = dynamic_cast<CPyCppyy::CPPMethod*>(methods[0]))
+            return PyUnicode_FromString(Cppyy::GetScopeModule(m->GetMethod()).c_str());
+    }
+
+    PyErr_SetString(PyExc_Exception, "could not materialize the LLVM module");
+    return nullptr;
+}
+
+//----------------------------------------------------------------------------
+static PyObject* mangled_name_of(PyObject* /* dummy */, PyObject* args, PyObject* kwds)
+{
+    if (!PyTuple_CheckExact(args) || PyTuple_GET_SIZE(args) != 1) {
+        PyErr_SetString(PyExc_TypeError, "expected an overload instance");
+        return nullptr;
+    }
+
+    PyObject* arg0 = PyTuple_GET_ITEM(args, 0);
+    if (CPPOverload_CheckExact(arg0)) {
+        const auto& methods = ((CPPOverload*)arg0)->fMethodInfo->fMethods;
+        if (methods.size() != 1) {
+            PyErr_SetString(PyExc_TypeError, "overload is not unambiguous");
+            return nullptr;
+        }
+        if (auto *m = dynamic_cast<CPyCppyy::CPPMethod*>(methods[0]))
+            return PyUnicode_FromString(Cppyy::MangledNameOf(m->GetMethod()).c_str());
+    }
+
+    PyErr_SetString(PyExc_Exception, "could not materialize the LLVM module");
+    return nullptr;
+}
+
+//----------------------------------------------------------------------------
 static PyObject* addressof(PyObject* /* dummy */, PyObject* args, PyObject* kwds)
 {
 // Return object proxy address as a value (cppyy-style), or the same for an array.
@@ -1024,6 +1071,10 @@ static PyMethodDef gCPyCppyyMethods[] = {
       METH_NOARGS, (char*)"cppyy internal function"},
     {(char*) "addressof", (PyCFunction)addressof,
       METH_VARARGS | METH_KEYWORDS, (char*)"Retrieve address of proxied object or field as a value."},
+    {(char*) "llvmir_of", (PyCFunction)llvmir_of,
+      METH_VARARGS | METH_KEYWORDS, (char*)"Retrieve LLVM IR of the given overload."},
+    {(char*) "mangled_name_of", (PyCFunction)mangled_name_of,
+      METH_VARARGS | METH_KEYWORDS, (char*)"Retrieve mangled name of the given overload."},
     {(char*) "as_cobject", (PyCFunction)AsCObject,
       METH_VARARGS | METH_KEYWORDS, (char*)"Retrieve address of proxied object or field in a CObject."},
     {(char*) "as_capsule", (PyCFunction)AsCapsule,

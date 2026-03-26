@@ -172,6 +172,11 @@ typedef void* TCppFuncAddr_t;
     TCppObject_t  CallO(TCppMethod_t method, TCppObject_t self, size_t nargs, void* args, TCppType_t result_type);
 
     CPPYY_IMPORT
+    std::string GetScopeModule(TCppScope_t scope);
+    CPPYY_IMPORT
+    std::string MangledNameOf(TCppScope_t scope);
+
+    CPPYY_IMPORT
     TCppFuncAddr_t GetFunctionAddress(TCppMethod_t method, bool check_enabled=true);
 
 // handling of function argument buffer --------------------------------------
@@ -353,6 +358,8 @@ typedef void* TCppFuncAddr_t;
     bool IsClassType(TCppType_t type);
     CPPYY_IMPORT
     bool IsFunctionPointerType(TCppType_t type);
+    CPPYY_IMPORT
+    bool IsInlineFunction(TCppType_t type);
     CPPYY_IMPORT
     TCppType_t  GetType(const std::string& name, bool enable_slow_lookup = false);
     CPPYY_IMPORT

@@ -1,6 +1,7 @@
 // Bindings
 #include "CPyCppyy.h"
 #include "CPyCppyy/Reflex.h"
+#include "boolobject.h"
 #include "structmember.h"    // from Python
 #if PY_VERSION_HEX >= 0x02050000
 #if PY_VERSION_HEX <  0x030b0000
@@ -18,6 +19,7 @@
 #include "CallContext.h"
 #include "PyStrings.h"
 #include "Utility.h"
+#include "CPPMethod.h"
 
 // Standard
 #include <algorithm>
@@ -1013,6 +1015,19 @@ static PyObject* mp_add_overload(CPPOverload* pymeth, PyObject* new_overload)
     Py_RETURN_NONE;
 }
 
+static PyObject* mp_inline(CPPOverload* pymeth, PyObject*)
+{
+    const auto& methods = pymeth->fMethodInfo->fMethods;
+    if (methods.size() != 1) {
+        PyErr_SetString(PyExc_TypeError, "overload is not unambiguous");
+        return nullptr;
+    }
+    if (auto *m = dynamic_cast<CPyCppyy::CPPMethod*>(methods[0]))
+        if (Cppyy::IsInlineFunction(m->GetMethod()))
+            Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
+}
+
 static PyObject* mp_reflex(CPPOverload* pymeth, PyObject* args)
 {
 // Provide the requested reflection information.
@@ -1032,6 +1047,8 @@ static PyMethodDef mp_methods[] = {
       (char*)"add a new overload" },
     {(char*)"__cpp_reflex__",   (PyCFunction)mp_reflex, METH_VARARGS,
       (char*)"C++ overload reflection information" },
+    {(char*)"__inline__",   (PyCFunction)mp_inline, METH_NOARGS,
+      (char*)"determine if C++ overload is inline" },
     {(char*)nullptr, nullptr, 0, nullptr }
 };
 

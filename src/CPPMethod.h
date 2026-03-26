@@ -73,6 +73,9 @@ public:
 
     int       GetArgMatchScore(PyObject* args_tuple) override;
 
+    // FIXME: can we redesign to not make this public?
+    Cppyy::TCppMethod_t GetMethod()   { return fMethod; }
+
 public:
     PyObject* Call(CPPInstance*& self,
         CPyCppyy_PyArgs_t args, size_t nargsf, PyObject* kwds, CallContext* ctxt = nullptr) override;
@@ -85,7 +88,6 @@ protected:
     bool ConvertAndSetArgs(CPyCppyy_PyArgs_t, size_t nargsf, CallContext* ctxt = nullptr);
     PyObject* Execute(void* self, ptrdiff_t offset, CallContext* ctxt = nullptr);
 
-    Cppyy::TCppMethod_t GetMethod()   { return fMethod; }
     Cppyy::TCppScope_t  GetScope()    { return fScope; }
     Executor*           GetExecutor() { return fExecutor; }
     std::string         GetSignatureString(bool show_formalargs = true);
