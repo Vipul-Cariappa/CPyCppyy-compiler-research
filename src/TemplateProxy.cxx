@@ -71,13 +71,13 @@ PyObject *TemplateProxy::Instantiate(const std::string &fname,
   }
 
   // adjust arguments for self if this is a rebound global function
-    bool isNS = (((CPPScope*)fTI->fPyClass)->fFlags & CPPScope::kIsNamespace);
-    if (!fTI->fIsConstructor && !isNS && CPyCppyy_PyArgs_GET_SIZE(args, nargsf) && \
-            (!fSelf ||
-            (fSelf == Py_None && !Cppyy::IsStaticTemplate(((CPPScope*)fTI->fPyClass)->fCppType, fname)))) {
-        args   += 1;
-        nargsf -= 1;
-    }
+    // bool isNS = (((CPPScope*)fTI->fPyClass)->fFlags & CPPScope::kIsNamespace);
+    // if (!fTI->fIsConstructor && !isNS && CPyCppyy_PyArgs_GET_SIZE(args, nargsf) && \
+    //         (!fSelf ||
+    //         (fSelf == Py_None && !Cppyy::IsStaticTemplate(((CPPScope*)fTI->fPyClass)->fCppType, fname)))) {
+    //     args   += 1;
+    //     nargsf -= 1;
+    // }
 
     Py_ssize_t argc = CPyCppyy_PyArgs_GET_SIZE(args, nargsf);
     if (argc != 0) {
@@ -252,7 +252,7 @@ PyObject *TemplateProxy::Instantiate(const std::string &fname,
     // Case 1/2: method simply did not exist before
         if (!pyol) {
         // actual overload to use (now owns meth)
-            pyol = (PyObject*)CPPOverload_New(fname, meth);
+            pyol = (PyObject*)CPPOverload_New(fname, scope, meth);
             if (bIsConstructor) {
             // TODO: this is an ugly hack :(
                 ((CPPOverload*)pyol)->fMethodInfo->fFlags |= \
@@ -276,13 +276,13 @@ PyObject *TemplateProxy::Instantiate(const std::string &fname,
         else if (bIsCppTP) {
             ((TemplateProxy*)pyol)->AdoptMethod(meth->Clone());
             Py_DECREF(pyol);
-            pyol = (PyObject*)CPPOverload_New(fname, meth);      // takes ownership
+            pyol = (PyObject*)CPPOverload_New(fname, scope, meth);      // takes ownership
         }
         // Case 6: pre-existing object is not a CPPOverload nor TemplateProxy
         // we do not cache it, as this might be a pythonization (monkey-patched func/method)
         else {
             Py_DECREF(pyol);
-            pyol = (PyObject*)CPPOverload_New(fname, meth);
+            pyol = (PyObject*)CPPOverload_New(fname, scope, meth);
         }
 
     // Special Case if name was aliased (e.g. typedef in template instantiation)
@@ -713,7 +713,7 @@ void TemplateProxy::Set(const std::string &cppname, const std::string &pyname,
   fTI->fIsConstructor = is_constructor;
 
     std::vector<PyCallable*> dummy;
-    fTI->fOverloads = CPPOverload_New(pyname, dummy);
+    fTI->fOverloads = CPPOverload_New(pyname, nullptr, dummy); // FIXME: should not be nullptr
 
     fVectorCall = (vectorcallfunc)tpp_vectorcall;
 }
@@ -800,7 +800,7 @@ static PyObject* tpp_overload(TemplateProxy* pytmpl, PyObject* args)
     } else
         meth = new CPPMethod(scope, cppmeth);
 
-    return (PyObject*)CPPOverload_New(pytmpl->fTI->fCppName+proto, meth);
+    return (PyObject*)CPPOverload_New(pytmpl->fTI->fCppName+proto, scope, meth);
 }
 
 static PyMethodDef tpp_methods[] = {

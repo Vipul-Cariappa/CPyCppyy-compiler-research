@@ -67,7 +67,7 @@ public:
 
     int       GetArgMatchScore(PyObject* args_tuple) override;
 
-    bool IsSimilarFnType(Cppyy::TCppType_t fn_type) override { 
+    bool IsSimilarFnType(Cppyy::TCppType_t fn_type) override {
         return Cppyy::IsSimilarFnTypes(fn_type, Cppyy::GetTypeFromScope(fMethod.data));
     }
     // extra info methods

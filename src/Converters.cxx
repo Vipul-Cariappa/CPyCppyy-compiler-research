@@ -2702,7 +2702,7 @@ static void* PyFunction_AsCPointer(PyObject* pyobject,
         std::string ret{}, sig{};
         GetSignatureFromFnType(fn_type, ret, sig);
         std::vector<Cppyy::TCppMethod_t> ambiguous_candidates;
-        Cppyy::TCppMethod_t cppmeth = 
+        Cppyy::TCppMethod_t cppmeth =
             Cppyy::GetMethodTemplate(scope, fullname, sig.substr(1, sig.size() - 2), ambiguous_candidates);
         if (cppmeth) {
             void* fptr = (void*)Cppyy::GetFunctionAddress(cppmeth, false);

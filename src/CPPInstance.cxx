@@ -462,7 +462,7 @@ static inline PyObject* eqneq_binop(CPPClass* klass, PyObject* self, PyObject* o
     if (!binop) {
         const char* cppop = op == Py_EQ ? "==" : "!=";
         PyCallable* pyfunc = FindBinaryOperator(self, obj, cppop);
-        if (pyfunc) binop = (PyObject*)CPPOverload_New(cppop, pyfunc);
+        if (pyfunc) binop = (PyObject*)CPPOverload_New(cppop, Cppyy::GetParentScope(pyfunc->GetMethod().data), pyfunc);
         else {
             Py_INCREF(Py_None);
             binop = Py_None;
@@ -519,7 +519,7 @@ static inline void* cast_actual(void* obj) {
     if (!ometh) {                                                             \
         PyCallable* pyfunc = Utility::FindBinaryOperator((PyObject*)self, other, #op);\
         if (pyfunc)                                                           \
-            ometh = (PyObject*)CPPOverload_New(#label, pyfunc);               \
+            ometh = (PyObject*)CPPOverload_New(#label, Cppyy::GetParentScope(pyfunc->GetMethod().data), pyfunc);\
         }                                                                     \
     meth = ometh;
 
@@ -887,7 +887,7 @@ static PyGetSetDef op_getset[] = {
     if (!meth) {                                                              \
         PyErr_Clear();                                                        \
         PyCallable* pyfunc = Utility::FindBinaryOperator(left, right, #op);   \
-        if (pyfunc) meth = (PyObject*)CPPOverload_New(#name, pyfunc);         \
+        if (pyfunc) meth = (PyObject*)CPPOverload_New(#name, Cppyy::GetParentScope(pyfunc->GetMethod().data), pyfunc);\
         else {                                                                \
             PyErr_SetString(PyExc_NotImplementedError, "");                   \
             return nullptr;                                                   \

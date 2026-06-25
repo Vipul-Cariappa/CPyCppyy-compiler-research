@@ -377,7 +377,7 @@ static PyObject* MakeCppTemplateClass(PyObject* /* self */, PyObject* args)
     if (PyErr_Occurred())
       return nullptr;
 
-    Cppyy::TCppScope_t scope = 
+    Cppyy::TCppScope_t scope =
         Cppyy::InstantiateTemplate(tmpl, types.data(), types.size());
     for (Cpp::TemplateArgInfo i: types) {
         if (i.m_IntegralValue)
